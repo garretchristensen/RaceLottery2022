@@ -9,7 +9,7 @@ set.seed(18) #SET THE SEED WITH DICE!
 library(dplyr)
 library(tibble)
 library(readxl)
-temp<-read.csv("./2021HL100FINAL.csv", stringsAsFactors = FALSE) #LOAD THE DATA
+temp<-read.csv("./2020HL100_lotteryentrants_provisional_1.12.21.csv", stringsAsFactors = FALSE) #LOAD THE DATA
 df<-as_tibble(temp)
 
 df$fullname<-paste(df$First_Name, df$Last_Name, sep=" ", collapse = NULL)
@@ -18,8 +18,8 @@ n_men_app=nrow(men<-df[which(df$Gender=="M"),])
 n_women_app=nrow(women<-df[which(df$Gender=="F"),])
 
 
-n_women_pick <- 14
-n_men_pick <- 5
+n_women_pick <- 66
+n_men_pick <- 62
 
 
 df$Applications<-df$Previous_Applications
@@ -33,7 +33,7 @@ df$k <- ifelse(df$Previous_Finishes==0 , 0,
 
 #Shifts max out at 10
 df$n<-pmin(df$Volunteer_Shifts, 10)
-df$t<-pmin(df$Trailwork, 10)
+df$t<-pmin(df$Extra_Trailwork, 10)
 
 #Tickets=2^(n+k+1)+2ln(v+t+1) where n, k, v, and t are defined as follows:
 df$tickets <-2^(df$k+df$Applications+1) + 2*log(df$n+df$t+1)
@@ -64,8 +64,8 @@ men_waitlist_pool<-anti_join(men, men_winners)
 n_men_waitlist_pool<-nrow(men_waitlist_pool)
 
 #SIMPLER THIS YEAR, JUST ENTER THE NUMBERS FOR THE WL, 8 and 7
-n_women_wait_pick<-13
-n_men_wait_pick<-12
+n_women_wait_pick<-44
+n_men_wait_pick<-75
 
 #PICK THE WAITLISTERS
 #WOMEN MIGHT NOT HAVE ANY
@@ -97,19 +97,19 @@ names(m_output_wait)[1]<-"Waitlisted_Men"
 
 
 ##########################################
-#Zipper the waitlists
+#Don't Zipper the waitlists in 2022
 ########################################
 #make column names identical so columns line up
-names(m_output_wait)[1]<-"Waitlisted_Name"
-names(w_output_wait)[1]<-"Waitlisted_Name"
+#names(m_output_wait)[1]<-"Waitlisted_Name"
+#names(w_output_wait)[1]<-"Waitlisted_Name"
 #bind women first for the waitlist for 2021
 
 temp <- bind_rows(w_output_wait, m_output_wait)
 
 #sort and relabel
-temp <- arrange(temp, Num)
-temp$GenderNum <-temp$Num
-temp$Num <-seq.int(nrow(temp))
+#temp <- arrange(temp, Num)
+#temp$GenderNum <-temp$Num
+#temp$Num <-seq.int(nrow(temp))
 
 
 
@@ -117,8 +117,8 @@ temp$Num <-seq.int(nrow(temp))
 #ADD EMAILS TO THE OUTPUT FOR CALEB ONLY
 ################################
 private_winners <- bind_rows(women_winners, men_winners)
-write.csv(private_winners, ".\\HL2021Winners.csv")
+write.csv(private_winners, ".\\HL2022Winners.csv")
 
 private_pools <-bind_rows(women_waiters, men_waiters)
 private_waiters <- left_join(temp, private_pools, by=c("Waitlisted_Name"="fullname"))
-write.csv(private_waiters, ".\\HL2021Waitlist.csv")
+write.csv(private_waiters, ".\\HL2022Waitlist.csv")

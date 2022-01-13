@@ -1,16 +1,16 @@
 ---
-title: "High Lonesome 2021 Lottery"
+title: "High Lonesome 2022 Lottery"
 author: "Garret Christensen"
-date: "January 13, 2021"
+date: "January 13, 2022"
 output: html_document
 runtime: shiny
 ---
 ## Background
 
-Welcome to the High Lonesome 2021 Lottery. This lottery is run with code written by Garret Christensen. The code is available on GitHub [here](http://www.github.com/garretchristensen/RaceLottery2021). The intent with using Github is to make the entire process transparent and reproducible. If you speak R, please check it out!
+Welcome to the High Lonesome 2022 Lottery. This lottery is run with code written by Garret Christensen. The code is available on GitHub [here](http://www.github.com/garretchristensen/RaceLottery2022). The intent with using Github is to make the entire process transparent and reproducible. If you speak R, please check it out!
 
 ## Lottery Design Choices
-The 2021 lottery is, like everything else, drastically affected by the pandemic and the cancellation of the 2020 race. We are mostly filling the slots of runners who chose not to roll over their 2020 entry. We are picking 5 men, 14 women, and a 15 person waitlist, starting with women and then alternating gender. 
+The 2022 lottery is picking 62 men, 66 women, a 75 person male waitlist, and a 44 person women waitlist (all remaining women entrants) from the 415 total applicants (110 women, 305 men). 
 
 The general goals of the lottery are as follows:
 
@@ -65,7 +65,7 @@ library(readxl)
 
 #I COULD MAKE THIS AN INTERACTIVE PART TOO LATER
 
-temp<-read.csv("./2021HL100FINAL.csv", stringsAsFactors = FALSE) #LOAD THE DATA
+temp<-read.csv("./test2022_noemail.csv", stringsAsFactors = FALSE) #LOAD THE DATA
 df<-as_tibble(temp)
 #THERE IS SOME STUPID NON-ASCII CHARACTER BEGINNING-OF-FILE 
 #NONSENSE GOING ON HERE
@@ -112,7 +112,7 @@ ui<-fluidPage(
   #and something inbetween them would be nice.
   fluidRow("These are the men selected in the lottery:", tableOutput("men")),
   
-  fluidRow("This is the waitlist:", tableOutput("combo"))
+  fluidRow("These are the waitlists. Women first, then men:", tableOutput("combo"))
  ),
 
 #############################################################################
@@ -124,9 +124,9 @@ nm<-input$Nm #SET THE TOTAL NUMBER TO PICK
 nw<-input$Nw #SET THE TOTAL NUMBER TO PICK
 
 ######################################################################
-#FOR 2021 JUST SET HOW MANY TO PICK
-n_women_pick <- 14
-n_men_pick <- 5
+#FOR 2022 JUST SET HOW MANY TO PICK
+n_women_pick <- 66
+n_men_pick <- 62
       
 ######################################################################
 #DETERMINE TICKETS FROM THE DATA
@@ -148,7 +148,7 @@ df$k <- ifelse(df$Previous_Finishes==0 , 0,
 
 #Shifts max out at 10
 df$n<-pmin(df$Volunteer_Shifts, 10)
-df$t<-pmin(df$Trailwork, 10)
+df$t<-pmin(df$Extra_Trailwork, 10)
 
 #Tickets=2^(n+k+1)+2ln(v+t+1) where n, k, v, and t are defined as follows:
 df$tickets <-2^(df$k+df$Applications+1) + 2*log(df$n+df$t+1)
@@ -198,15 +198,15 @@ women<-df[which(df$Gender=="F"),]
   n_men_waitlist_pool<-nrow(men_waitlist_pool)
     
   #SIMPLER THIS YEAR, JUST ENTER THE NUMBERS FOR THE WL, 8 and 7
-  n_women_wait_pick<-13
-  n_men_wait_pick<-12
+  n_women_wait_pick<-44
+  n_men_wait_pick<-75
   
   #PICK THE WAITLISTERS
   #WOMEN MIGHT NOT HAVE ANY
 
     women_waiters <- sample_n(women_waitlist_pool, n_women_wait_pick, replace = FALSE, weight=women_waitlist_pool$tickets)
     w_output_wait<-subset(women_waiters, select=c("fullname"))
-    w_output_wait_priv<-subset(women_waiters, select=c("fullname", "Email_Address"))
+    #w_output_wait_priv<-subset(women_waiters, select=c("fullname", "Email_Address"))
     w_output_wait$Num<-seq.int(nrow(w_output_wait))
     #w_output_wait<-w_output_wait[,c(5,1,2,3,4)]
     names(w_output_wait)[1]<-"Waitlisted_Women"
@@ -220,7 +220,7 @@ women<-df[which(df$Gender=="F"),]
   #subset
   #dfnew5 <- subset(diamonds, select=c("color", "carat", "price"))
   m_output_wait<-subset(men_waiters, select=c("fullname"))
-  m_output_wait_priv<-subset(men_waiters, select=c("fullname", "Email_Address"))
+  #m_output_wait_priv<-subset(men_waiters, select=c("fullname", "Email_Address"))
   #Add ID column data$ID <- seq.int(nrow(data))
   m_output_wait$Num<-seq.int(nrow(m_output_wait))
   #rearrange columns df2[,c(1,3,2,4)
@@ -232,7 +232,7 @@ women<-df[which(df$Gender=="F"),]
   
       
   ##########################################
-  #Zipper the waitlists
+  #Don't Zipper the waitlists
   ########################################
   #make column names identical so columns line up
   names(m_output_wait)[1]<-"Waitlisted_Name"
@@ -242,9 +242,9 @@ women<-df[which(df$Gender=="F"),]
   temp <- bind_rows(w_output_wait, m_output_wait)
   
   #sort and relabel
-  temp <- arrange(temp, Num)
-  temp$GenderNum <-temp$Num
-  temp$Num <-seq.int(nrow(temp))
+  #temp <- arrange(temp, Num)
+  #temp$GenderNum <-temp$Num
+  #temp$Num <-seq.int(nrow(temp))
   
   output$combo<-renderTable(temp)
    
@@ -256,5 +256,5 @@ women<-df[which(df$Gender=="F"),]
 ```
 
 
-### 2021 Waitlist
-We picked 25 people for the waitlist, starting with women.
+### 2022 Waitlist
+There are two separate waitlists, one for men (75) and one for women (all remaining 44).
