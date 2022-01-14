@@ -10,7 +10,7 @@ runtime: shiny
 Welcome to the High Lonesome 2022 Lottery. This lottery is run with code written by Garret Christensen. The code is available on GitHub [here](http://www.github.com/garretchristensen/RaceLottery2022). The intent with using Github is to make the entire process transparent and reproducible. If you speak R, please check it out!
 
 ## Lottery Design Choices
-The 2022 lottery is picking 62 men, 66 women, a 75 person male waitlist, and a 44 person women waitlist (all remaining women entrants) from the 415 total applicants (110 women, 305 men). 
+The 2022 lottery is picking 62 men, 66 women, a 75 person male waitlist, and a 42 person women waitlist (all remaining women entrants) from the 409 total applicants (108 women, 301 men). 
 
 The general goals of the lottery are as follows:
 
@@ -22,41 +22,35 @@ The general goals of the lottery are as follows:
 
 So here are the activities for which we will award points:
 
-* Volunteer shifts *at* High Lonesome
-* Extra volunteer trailwork beyond the eight hours required
+* Volunteer shifts at High Lonesome or other Freestone Endurance events
+* Extra volunteer trailwork *beyond* the eight hours required
 * Previous applications for the race
 * Previous finishes of the race
 
 
 ### Chosen Model
 
-Statistically, getting equal numbers of men and women is normally easy---just divide the race cap in half and draw separately. The number of slots drawn in 2021 is different because of the number of 2020 rollovers for each gender. The rest is a bit more complicated, but we've chosen the following weighting method:
+Statistically, getting equal numbers of men and women is easy---just divide the race cap in half and draw separately. The number of slots drawn in 2022 is slightly different because of volunteer slots, sponsor slots etc. (See the [race website](https://www.highlonesome100.com/general-registration-info) for a complete listing). The rest is a bit more complicated, but we've chosen the following weighting method: 
 
 Tickets=2^(n+k+1)+2ln(v+t+1) where n, k, v, and t are defined as follows:
 
-* Previous unsuccessful applications: Since you were last *picked* in the lottery, offered entry off the waitlist, or offered entry via the volunteer raffle, how many times have you entered the High Lonesome lottery, not including this year? Note that previous lottery entries need not be in successive years, but they reset to zero after you are picked in the lottery or are offered a slot via other means such as the waitlist or the volunteer raffle. n is equal to your previous unsuccessful applications, as defined above, with no maximum. For 2021 this is at most 1 because we've only had one lottery before.
+* Previous_Applications = N = Since you were last picked in the lottery or offered entry off the waitlist, how many times have you entered the High Lonesome lottery, NOT including this year? Note that previous lottery entries do NOT need be in successive years. The value of N resets to zero after you are picked in the lottery, are offered a slot via the waitlist, or fail to apply for three years. N is equal to your previous unsuccessful applications, as defined above, with no maximum.					
 
 
-* Previous finishes: How many times have you finished High Lonesome 100?
-We will award previous finishers a boost until they have finished High Lonesome three times; then the boost decreases. (We love returning runners, but after a while, it's cool to give others a chance.)
-k is defined according to the following rule:
-* k=0 if finishes==0
-* k=0.5 if finishes==1
-* k=1 if finishes==2
-* k=1.5 if finishes==3
-* k=0.5 if finishes>=4
+* Weighted_Finishes = K = How many times have you finished High Lonesome 100? We will award previous finishers a boost until they have finished High Lonesome three times; then the boost decreases. (We love returning runners, but after a while, it’s cool to give others a chance.) K is defined according to the following rule: k = 0 if you have 0 finishes, k = 0.5 if you have 1 finish, k = 1 if you have 2 finishes, k = 1.5 if you have 3 finishes, and k = 0.5 if you have 4 or more finishes.				
 
-* Volunteer shifts: How many official shifts did you volunteer at the previous (current calendar year at the time of the lottery) running of High Lonesome? v is  the number of official shifts. Maximum of 10. 
+* Volunteer_Points = V = How many volunteer tickets did you receive at the previous (ie the 2021) running of the High Lonesome, West Line Winder, and/or Sawatch Ascent? V is the number of tickets for your approved volunteer shifts. Approved shifts means that you volunteered in an official capacity at a sanctioned Freestone Endurance task…think aid stations, course marking, etc. Things this doesn’t include is trail work, pacing your friend, helping out for a bit at an aid station while you were waiting for a runner, or other informal means. The maximum amount that can be claimed is 30.				
 
-* Trailwork: Not including the trailwork *required* for High Lonesome, how many solid 8-hour shifts of physical volunteer trail work have you completed since November 15 of last year? Volunteering or pacing at a race doesn't count. These trailwork hours must be *over and above* the 8-hours required for High Lonesome itself, they must be done with an approved land management agency or partner organization, and they must not be used in order to qualify for any other race or ultra--or court-mandated community service requirement ;). We obviously don't have a great way to verify this, so you're on your honor. Please don't abuse this. t is the number of 8-hour shifts. Maximum of 10.
+* Extra_Trailwork = T = Between 1/1/2021 and 12/31/2021, how many EXTRA hours of trail work did you do? Your total number of hours is divided by 8 (a standard trail work shift). You may not use any hours that you've already used for some other race credit (that includes work done for the High Lonesome 100) or for which you were paid. You must also provide a trail work form for all the hours you are claiming. The maximum amount that can be claimed is 10.					
 
-Note that runners are allowed deferred entry from previous years due to pregnancy or new children or getting into Western States or Hardrock. There are also a small number of legacy spots. We take these slots from their respective gender lotteries. All these policies are described on the High Lonesome webpage [here](https://www.highlonesome100.com/general-registration-info).
+
 
 
 ```{r prep, echo=FALSE, results=FALSE, warning=FALSE, message=FALSE}
 library(dplyr)
 library(tibble)
 library(readxl)
+library(markdown)
 
 
 #####################################################
@@ -65,7 +59,7 @@ library(readxl)
 
 #I COULD MAKE THIS AN INTERACTIVE PART TOO LATER
 
-temp<-read.csv("./test2022_noemail.csv", stringsAsFactors = FALSE) #LOAD THE DATA
+temp<-read.csv("./2022HL100_lotteryentrants_final_noemail.csv", stringsAsFactors = FALSE) #LOAD THE DATA
 df<-as_tibble(temp)
 #THERE IS SOME STUPID NON-ASCII CHARACTER BEGINNING-OF-FILE 
 #NONSENSE GOING ON HERE
@@ -84,8 +78,7 @@ n_women_app=nrow(women<-df[which(df$Gender=="F"),])
 
 ```
 
-# Implementing the Lottery
-To run the lottery, all you have to do is enter the seed below. (It will show an error until you enter a number.) The actual seed will be determined by a live roll of nine 10-sided dice on Friday January 15, each single die roll becoming a digit of the integer, in order, plus one coin toss determining whether the entire number is positive or negative. The seed primes R's pseudo-random number generator so the code can run reproducibly. Before the seed is set, applicants can enter any integer they want to simulate the lottery. Well, almost. For computer-y reasons it can be any integer with absolute value less than or equal to 2,147,483,647.
+
 
 
 
@@ -96,6 +89,17 @@ shinyApp(
 # WHAT THE UI LOOKS LIKE
 #######################################################################
 ui<-fluidPage(
+  htmltools::includeMarkdown("./markdown/justtellmetheodds.md"),
+  fluidRow(
+  column(6, sliderInput("apps", label = h5("Previous applications"), min=0, max=10, value = 0)),
+  column(6, sliderInput("finishes", label = h5("Previous Finishes"), min=0, max=4, value = 0)),
+  column(6, sliderInput("volunteer", label = h5("Volunteer Shifts"), min=0, max=30, value = 0)),
+  column(6, sliderInput("trailwork", label = h5("Extra Trailwork"), min=0, max=10, value = 0))
+  ),
+  
+  fluidRow("Your tickets in the lottery:", textOutput("tickets")),
+  
+  htmltools::includeMarkdown("./markdown/implementingthelottery.md"),
   # Copy the line below to make a number input box into the UI.
   fluidRow(
   column(6, numericInput("num", label = h1("Enter the seed"), value = NA))
@@ -112,12 +116,32 @@ ui<-fluidPage(
   #and something inbetween them would be nice.
   fluidRow("These are the men selected in the lottery:", tableOutput("men")),
   
+  htmltools::includeMarkdown("./markdown/herearethewaitlists.md"),
   fluidRow("These are the waitlists. Women first, then men:", tableOutput("combo"))
  ),
 
 #############################################################################
 server<- function(input, output) {
 
+  output$tickets <- renderText({
+#Do THE VARIABLE TRANSFORMATIONS FOR PEOPLE's ENTERED VALUES
+k_sim <- ifelse(input$finishes==0 , 0,
+               ifelse(input$finishes==1,  0.5,
+                      ifelse(input$finishes==2, 1, 
+                             ifelse(input$finishes==3, 1.5,
+                                    ifelse(input$finishes>=4, 0.5, 0)))))
+
+
+#Shifts max out at 30 (10 each race)
+v_sim<-pmin(input$volunteer, 30)
+t_sim<-pmin(input$trailwork, 10)
+
+#Tickets=2^(n+k+1)+2ln(v+t+1) where n, k, v, and t are defined as follows:
+2^(k_sim+input$apps+1) + 2*log(v_sim+t_sim+1)
+
+})
+  
+  
 output$value <- renderPrint({
 set.seed(input$num) #SET THE SEED WITH DICE!
 nm<-input$Nm #SET THE TOTAL NUMBER TO PICK
@@ -146,16 +170,21 @@ df$k <- ifelse(df$Previous_Finishes==0 , 0,
                                     ifelse(df$Previous_Finishes>=4, 0.5, 0)))))
 
 
-#Shifts max out at 10
-df$n<-pmin(df$Volunteer_Shifts, 10)
+#Shifts max out at 30 (10 each race)
+df$v<-pmin(df$Volunteer_Shifts, 30)
 df$t<-pmin(df$Extra_Trailwork, 10)
 
 #Tickets=2^(n+k+1)+2ln(v+t+1) where n, k, v, and t are defined as follows:
-df$tickets <-2^(df$k+df$Applications+1) + 2*log(df$n+df$t+1)
+df$tickets <-2^(df$k+df$Applications+1) + 2*log(df$v+df$t+1)
+
+##########################################################
+
+
 
 #SPLIT THE DATA INTO MENS AND WOMENS
 men<-df[which(df$Gender=="M"),]
 women<-df[which(df$Gender=="F"),]
+
 
 ##############################################################
 #DRAW THE LOTTERY
@@ -170,8 +199,8 @@ women<-df[which(df$Gender=="F"),]
     #look sort of well-labeled
     #subset
     #dfnew5 <- subset(diamonds, select=c("color", "carat", "price"))
-    w_output<-subset(women_winners, select=c("fullname"))
-    m_output<-subset(men_winners, select=c("fullname"))
+    w_output<-subset(women_winners, select=c("fullname", "City", "State"))
+    m_output<-subset(men_winners, select=c("fullname", "City", "State"))
     
     #Add ID column data$ID <- seq.int(nrow(data))
     w_output$Num<-seq.int(nrow(w_output))
@@ -182,6 +211,7 @@ women<-df[which(df$Gender=="F"),]
     #rename: names(data)[3]<-"new_name"
     names(w_output)[1]<-"Selected_Women"
     names(m_output)[1]<-"Selected_Men"
+    
     #Send the winners' names to be output
     output$women <- renderTable(w_output)
     output$men <- renderTable(m_output)
@@ -198,14 +228,14 @@ women<-df[which(df$Gender=="F"),]
   n_men_waitlist_pool<-nrow(men_waitlist_pool)
     
   #SIMPLER THIS YEAR, JUST ENTER THE NUMBERS FOR THE WL, 8 and 7
-  n_women_wait_pick<-44
+  n_women_wait_pick<-42
   n_men_wait_pick<-75
   
   #PICK THE WAITLISTERS
   #WOMEN MIGHT NOT HAVE ANY
 
     women_waiters <- sample_n(women_waitlist_pool, n_women_wait_pick, replace = FALSE, weight=women_waitlist_pool$tickets)
-    w_output_wait<-subset(women_waiters, select=c("fullname"))
+    w_output_wait<-subset(women_waiters, select=c("fullname", "City", "State"))
     #w_output_wait_priv<-subset(women_waiters, select=c("fullname", "Email_Address"))
     w_output_wait$Num<-seq.int(nrow(w_output_wait))
     #w_output_wait<-w_output_wait[,c(5,1,2,3,4)]
@@ -219,7 +249,7 @@ women<-df[which(df$Gender=="F"),]
   #look sort of well-labeled
   #subset
   #dfnew5 <- subset(diamonds, select=c("color", "carat", "price"))
-  m_output_wait<-subset(men_waiters, select=c("fullname"))
+  m_output_wait<-subset(men_waiters, select=c("fullname", "City", "State"))
   #m_output_wait_priv<-subset(men_waiters, select=c("fullname", "Email_Address"))
   #Add ID column data$ID <- seq.int(nrow(data))
   m_output_wait$Num<-seq.int(nrow(m_output_wait))
@@ -255,6 +285,3 @@ women<-df[which(df$Gender=="F"),]
 
 ```
 
-
-### 2022 Waitlist
-There are two separate waitlists, one for men (75) and one for women (all remaining 44).

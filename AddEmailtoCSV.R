@@ -9,7 +9,7 @@ set.seed(18) #SET THE SEED WITH DICE!
 library(dplyr)
 library(tibble)
 library(readxl)
-temp<-read.csv("./2020HL100_lotteryentrants_provisional_1.12.21.csv", stringsAsFactors = FALSE) #LOAD THE DATA
+temp<-read.csv("./2022HL100_lotteryentrants_final.csv", stringsAsFactors = FALSE) #LOAD THE DATA
 df<-as_tibble(temp)
 
 df$fullname<-paste(df$First_Name, df$Last_Name, sep=" ", collapse = NULL)
@@ -42,6 +42,77 @@ df$tickets <-2^(df$k+df$Applications+1) + 2*log(df$n+df$t+1)
 men<-df[which(df$Gender=="M"),]
 women<-df[which(df$Gender=="F"),]
 
+####################################################
+
+#PRINT THE ODDS
+# WOMEN ODDS
+#the number of women with a given number of tickets
+applicants <- pull((women %>% count(tickets))[,2], n)
+
+#those ticket numbers
+tickets_per_applicant <- sort(women$tickets[!duplicated(women$tickets)])
+
+#the total tickets from that 'category'
+original_tickets <- applicants * tickets_per_applicant
+ticket_counts <- original_tickets
+
+for (i in 1:n_women_pick) {
+  #odds of picking that category
+  prob_of_selecting_category <- ticket_counts / sum(ticket_counts)
+  #expected reduction in tickets by picking a person from that category
+  exp_ticket_reduction <- prob_of_selecting_category * tickets_per_applicant
+  #reduce the tickets remaining
+  ticket_counts <- ticket_counts - exp_ticket_reduction
+}
+#tickets pulled from a category
+tickets_taken <- original_tickets - ticket_counts
+#odds from that category
+odds_of_selection <- tickets_taken / original_tickets
+#people from that category
+num_people_taken <- odds_of_selection * applicants
+w_odds <- cbind(tickets_per_applicant, odds_of_selection, applicants, num_people_taken)
+w_odds
+############################
+# MEN ODDS
+#the number of men with a given number of tickets
+applicants <- pull((men %>% count(tickets))[,2], n)
+
+#those ticket numbers
+tickets_per_applicant <- sort(men$tickets[!duplicated(men$tickets)])
+
+#the total tickets from that 'category'
+original_tickets <- applicants * tickets_per_applicant
+ticket_counts <- original_tickets
+
+for (i in 1:n_men_pick) {
+  #odds of picking that category
+  prob_of_selecting_category <- ticket_counts / sum(ticket_counts)
+  #expected reduction in tickets by picking a person from that category
+  exp_ticket_reduction <- prob_of_selecting_category * tickets_per_applicant
+  #reduce the tickets remaining
+  ticket_counts <- ticket_counts - exp_ticket_reduction
+}
+#tickets pulled from a category
+tickets_taken <- original_tickets - ticket_counts
+#odds from that category
+odds_of_selection <- tickets_taken / original_tickets
+#people from that category
+num_people_taken <- odds_of_selection * applicants
+m_odds <- cbind(tickets_per_applicant, odds_of_selection, applicants, num_people_taken)
+m_odds
+
+#PRINT A CSV OF THE ODDS
+men_blurb<-"This is the mens odds. Find your number of tickets to find the odds. \n The columns are your tickets (points), the odds of a man with that number of tickets getting in, the number of men with that exact tickets/point-score to apply, and the expected number of men with those tickets to get in. \n \n"
+women_blurb<-"\n This is the womens odds. Find your number of tickets to find the odds. \n The columns are your tickets (points), the odds of a woman with that number of tickets getting in, the number of women with that exact tickets/point-score to apply, and the expected number of women with those tickets to get in. \n \n"
+sink("odds.txt")
+cat(men_blurb)
+round(m_odds, digits = 4)
+cat(women_blurb)
+round(w_odds, digits = 4)
+sink()
+
+
+
 ##############################################################
 #DRAW THE LOTTERY
 
@@ -64,7 +135,7 @@ men_waitlist_pool<-anti_join(men, men_winners)
 n_men_waitlist_pool<-nrow(men_waitlist_pool)
 
 #SIMPLER THIS YEAR, JUST ENTER THE NUMBERS FOR THE WL, 8 and 7
-n_women_wait_pick<-44
+n_women_wait_pick<-42
 n_men_wait_pick<-75
 
 #PICK THE WAITLISTERS
@@ -100,8 +171,8 @@ names(m_output_wait)[1]<-"Waitlisted_Men"
 #Don't Zipper the waitlists in 2022
 ########################################
 #make column names identical so columns line up
-#names(m_output_wait)[1]<-"Waitlisted_Name"
-#names(w_output_wait)[1]<-"Waitlisted_Name"
+names(m_output_wait)[1]<-"Waitlisted_Name"
+names(w_output_wait)[1]<-"Waitlisted_Name"
 #bind women first for the waitlist for 2021
 
 temp <- bind_rows(w_output_wait, m_output_wait)
