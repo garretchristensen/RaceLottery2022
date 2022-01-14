@@ -3,7 +3,7 @@
 #RUN THIS CODE AFTER THE SEED IS KNOWN
 
 
-set.seed(18) #SET THE SEED WITH DICE!
+set.seed(30) #SET THE SEED WITH DICE!
 
 
 library(dplyr)
@@ -31,8 +31,8 @@ df$k <- ifelse(df$Previous_Finishes==0 , 0,
                                     ifelse(df$Previous_Finishes>=4, 0.5, 0)))))
 
 
-#Shifts max out at 10
-df$n<-pmin(df$Volunteer_Shifts, 10)
+#Shifts max out at 30
+df$n<-pmin(df$Volunteer_Shifts, 30)
 df$t<-pmin(df$Extra_Trailwork, 10)
 
 #Tickets=2^(n+k+1)+2ln(v+t+1) where n, k, v, and t are defined as follows:

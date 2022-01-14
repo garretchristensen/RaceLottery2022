@@ -59,7 +59,7 @@ library(markdown)
 
 #I COULD MAKE THIS AN INTERACTIVE PART TOO LATER
 
-temp<-read.csv("./2022HL100_lotteryentrants_final_noemail.csv", stringsAsFactors = FALSE) #LOAD THE DATA
+temp<-read.csv("./2022HL100_lotteryentrants_final.csv", stringsAsFactors = FALSE) #LOAD THE DATA
 df<-as_tibble(temp)
 #THERE IS SOME STUPID NON-ASCII CHARACTER BEGINNING-OF-FILE 
 #NONSENSE GOING ON HERE
