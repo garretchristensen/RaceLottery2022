@@ -3,7 +3,7 @@
 #RUN THIS CODE AFTER THE SEED IS KNOWN
 
 
-set.seed(30) #SET THE SEED WITH DICE!
+set.seed(-516292285) #SET THE SEED WITH DICE!
 
 
 library(dplyr)
