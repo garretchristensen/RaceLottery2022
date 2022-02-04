@@ -1,0 +1,13 @@
+name: Lottery2022
+title: Lottery2022
+username:
+account: garretchristensen
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5434803
+bundleId: 5467808
+url: https://garretchristensen.shinyapps.io/Lottery2022/
+when: 1642154806.45713
+lastSyncTime: 1642154806.45713
+asMultiple: FALSE
+asStatic: FALSE

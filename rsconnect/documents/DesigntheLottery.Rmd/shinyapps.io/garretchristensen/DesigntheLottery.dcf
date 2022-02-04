@@ -1,0 +1,13 @@
+name: DesigntheLottery
+title: DesigntheLottery
+username:
+account: garretchristensen
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5578895
+bundleId: 5543896
+url: https://garretchristensen.shinyapps.io/DesigntheLottery/
+when: 1643999290.64192
+lastSyncTime: 1643999290.64192
+asMultiple: FALSE
+asStatic: FALSE
